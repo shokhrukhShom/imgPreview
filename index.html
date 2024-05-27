@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload and Preview</title>
+    <title>Image Upload and Reorder</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Image Upload and Preview</h1>
-    <label for="fileInput">Choose images to upload (PNG, JPG)</label>
-    <input type="file" id="fileInput" name="fileInput" type=".jpg, .png, .jpeg " multiple>
-    <div id="imageContainer"></div>
+    <form id="imageForm">
+        <input type="file" id="fileInput" multiple>
+        <div id="imageContainer"></div>
+        <button type="button" id="sanityCheckButton">Sanity Check</button>
+    </form>
     <script src="script.js"></script>
 </body>
 </html>

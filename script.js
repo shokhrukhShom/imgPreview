@@ -1,54 +1,61 @@
 document.getElementById('fileInput').addEventListener('change', handleFileSelect);
 
-// Array to store selected files
 let fileArray = [];
 
-// Handle file selection and preview generation
-function handleFileSelect(event) {
-    const files = event.target.files;
+async function handleFileSelect(event) {
+    const files = Array.from(event.target.files);
     const imageContainer = document.getElementById('imageContainer');
 
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        fileArray.push(file);  // Add file to the custom file array
-        const reader = new FileReader();
+        fileArray.push(file);
 
-        reader.onload = (function(theFile, index) {
-            return function(e) {
-                const imageWrapper = document.createElement('div');
-                imageWrapper.className = 'image-wrapper';
-                imageWrapper.draggable = true;
-                imageWrapper.setAttribute('data-index', index);  // Set initial data-index
-
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.alt = theFile.name;
-
-                const removeButton = document.createElement('button');
-                removeButton.className = 'remove-btn';
-                removeButton.innerHTML = 'X';
-                removeButton.addEventListener('click', function() {
-                    const fileIndex = parseInt(imageWrapper.getAttribute('data-index'));
-                    fileArray.splice(fileIndex, 1);  // Remove file from the array
-                    imageContainer.removeChild(imageWrapper);  // Remove from DOM
-                    updateIndices();
-                    updateFileArray();
-                });
-
-                imageWrapper.appendChild(img);
-                imageWrapper.appendChild(removeButton);
-                imageContainer.appendChild(imageWrapper);
-
-                addDragAndDropHandlers(imageWrapper);
-                updateIndices();
-            };
-        })(file, fileArray.length - 1);
-
-        reader.readAsDataURL(file);
+        await readFile(file, fileArray.length - 1, imageContainer);
     }
+
+    updateIndices();
+    updateFileArray();
 }
 
-// Add drag-and-drop event handlers to the element
+function readFile(file, index, container) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const imageWrapper = document.createElement('div');
+            imageWrapper.className = 'image-wrapper';
+            imageWrapper.draggable = true;
+            imageWrapper.setAttribute('data-index', index);
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = file.name;
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-btn';
+            removeButton.innerHTML = 'X';
+            removeButton.addEventListener('click', function() {
+                const fileIndex = Array.from(container.children).indexOf(imageWrapper);
+                fileArray.splice(fileIndex, 1);
+                container.removeChild(imageWrapper);
+                updateIndices();
+                updateFileArray();
+            });
+
+            imageWrapper.appendChild(img);
+            imageWrapper.appendChild(removeButton);
+            container.appendChild(imageWrapper);
+
+            addDragAndDropHandlers(imageWrapper);
+            resolve();
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsDataURL(file);
+    });
+}
+
 function addDragAndDropHandlers(element) {
     element.addEventListener('dragstart', handleDragStart);
     element.addEventListener('dragover', handleDragOver);
@@ -61,7 +68,7 @@ function addDragAndDropHandlers(element) {
 let dragSrcEl = null;
 
 function handleDragStart(e) {
-    dragSrcEl = this;  // Set the source element being dragged
+    dragSrcEl = this;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', this.innerHTML);
 
@@ -70,7 +77,7 @@ function handleDragStart(e) {
 
 function handleDragOver(e) {
     if (e.preventDefault) {
-        e.preventDefault();  // Necessary for allowing a drop
+        e.preventDefault();
     }
     e.dataTransfer.dropEffect = 'move';
     return false;
@@ -78,23 +85,22 @@ function handleDragOver(e) {
 
 function handleDragEnter(e) {
     if (this !== dragSrcEl) {
-        this.classList.add('over');  // Highlight potential drop target
+        this.classList.add('over');
     }
 }
 
 function handleDragLeave(e) {
-    this.classList.remove('over');  // Remove highlight
+    this.classList.remove('over');
 }
 
 function handleDrop(e) {
     if (e.stopPropagation) {
-        e.stopPropagation();  // Prevent default behavior
+        e.stopPropagation();
     }
 
     if (dragSrcEl !== this) {
         const parent = this.parentNode;
 
-        // Reorder elements in the DOM
         if (dragSrcEl.nextSibling === this) {
             parent.insertBefore(this, dragSrcEl);
         } else if (this.nextSibling === dragSrcEl) {
@@ -104,7 +110,6 @@ function handleDrop(e) {
             parent.insertBefore(this, dragSrcEl);
         }
 
-        // Update data-index attributes and fileArray
         updateIndices();
         updateFileArray();
     }
@@ -119,7 +124,6 @@ function handleDragEnd(e) {
     });
 }
 
-// Update data-index attributes of all image wrappers
 function updateIndices() {
     const items = document.querySelectorAll('.image-wrapper');
     items.forEach((item, index) => {
@@ -127,26 +131,16 @@ function updateIndices() {
     });
 }
 
-// Update fileArray to match the current DOM order
 function updateFileArray() {
-    const items = document.querySelectorAll('.image-wrapper');
-    
-    const newArray = Array.from(items).map(item => {
-        const index = parseInt(item.getAttribute('data-index'));
-        return fileArray[index];
+    const items = document.querySelectorAll('.image-wrapper img');
+    const newArray = Array.from(items).map(img => {
+        return fileArray.find(file => file.name === img.alt);
     });
-    fileArray = [];  // Clear the array
-    Array.prototype.push.apply(fileArray, newArray);  // Update with new order
+    fileArray.length = 0;
+    Array.prototype.push.apply(fileArray, newArray);
     console.log("Updated fileArray:", fileArray.map(file => file.name));
 }
 
-// Debugging function for sanity checks
-function sanityCheck() {
-    console.log("File order:");
-    fileArray.forEach((file, index) => {
-        console.log(`${index + 1}: ${file.name}`);
-    });
-}
-
-// Bind the sanity check to a button click for easy testing
-document.getElementById('sanityCheckButton').addEventListener('click', sanityCheck);
+document.getElementById('sanityCheckButton').addEventListener('click', function() {
+    console.log("Sanity check fileArray:", fileArray.map(file => file.name));
+});
