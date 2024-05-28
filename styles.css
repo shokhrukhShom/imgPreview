@@ -12,14 +12,12 @@ body {
 }
 
 .image-wrapper img {
-    display: block;
-    max-width: 120px;
-    max-height: 120px;
-}
-img {
-    width: 120px;
-    height: 120px;
-}
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+} 
 
 .remove-btn {
     position: absolute;
