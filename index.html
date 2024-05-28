@@ -8,9 +8,11 @@
 </head>
 <body>
     <form id="imageForm">
-        <input type="file" id="fileInput" multiple>
+        <label for="fileInput" class="uploadBtn">Upload</label>
+        <input type="file" id="fileInput" multiple accept=".png, .jpg, .jpeg" style="display: none;">
+        <button type="button" id="sanityCheckButton" class="uploadBtn">Save </button>
         <div id="imageContainer"></div>
-        <button type="button" id="sanityCheckButton">Sanity Check</button>
+        
     </form>
     <script src="script.js"></script>
 </body>
